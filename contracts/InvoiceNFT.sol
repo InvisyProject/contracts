@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract InvoiceNFT is ERC721, Ownable {
+contract InvoiceNFT is ERC721 {
     uint256 public tokenIdCounter;
+    mapping(uint256 => Invoice) public invoices;
 
     struct Invoice {
         uint256 billAmount;
@@ -13,14 +13,12 @@ contract InvoiceNFT is ERC721, Ownable {
         uint256 createdAt;
         uint256 dueDate;
         string uniqueId;
-        address buyer;
-        address seller;
+        string buyer;
+        string seller;
         address payer;
         address payee;
         string status;
     }
-
-    mapping(uint256 => Invoice) public invoices;
 
     event InvoiceMinted(
         uint256 tokenId,
@@ -29,15 +27,20 @@ contract InvoiceNFT is ERC721, Ownable {
         uint256 createdAt,
         uint256 dueDate,
         string uniqueId,
-        address indexed buyer,
-        address indexed seller,
-        address indexed payer,
+        string buyer,
+        string seller,
+        address payer,
         address payee,
         string status
     );
 
-    constructor(address initialOwner) ERC721("InvoiceNFT", "INFT")  Ownable(initialOwner) {
+    // Modifier to restrict function call to a specific address
+    modifier onlyToAddress(address to) {
+        require(msg.sender == to, "Caller is not the authorized address");
+        _;
     }
+
+    constructor() ERC721("InvoiceNFT", "INFT") {}
 
     function mintInvoice(
         address to,
@@ -45,14 +48,15 @@ contract InvoiceNFT is ERC721, Ownable {
         string memory token,
         uint256 dueDate,
         string memory uniqueId,
-        address buyer,
-        address seller,
+        string memory buyer,
+        string memory seller,
         address payer,
         address payee,
         string memory status
-    ) public onlyOwner {
-        uint256 tokenId = tokenIdCounter++;
+    ) public onlyToAddress(to) {
+        uint256 tokenId = tokenIdCounter;
         _mint(to, tokenId);
+        tokenIdCounter++;
 
         invoices[tokenId] = Invoice({
             billAmount: billAmount,
@@ -80,9 +84,5 @@ contract InvoiceNFT is ERC721, Ownable {
             payee,
             status
         );
-    }
-
-    function getInvoiceDetails(uint256 tokenId) public view returns (Invoice memory) {
-        return invoices[tokenId];
     }
 }
