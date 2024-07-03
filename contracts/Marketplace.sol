@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./InvoiceNFT.sol";
 
-contract InvoiceFactoringMarketplace is ERC721Holder {
+contract InvoiceMarketplace is ERC721Holder {
     struct Listing {
         uint256 tokenId;
         address seller;
@@ -21,6 +21,8 @@ contract InvoiceFactoringMarketplace is ERC721Holder {
         address payee;
         string status;
     }
+
+    uint256 public totalListings;
 
     InvoiceNFT public invoiceNFT;
     mapping(uint256 => Listing) public listings;
@@ -47,6 +49,7 @@ contract InvoiceFactoringMarketplace is ERC721Holder {
 
     constructor(address _invoiceNFT) {
         invoiceNFT = InvoiceNFT(_invoiceNFT);
+        totalListings = 0;
     }
 
     function mintAndListInvoice(
@@ -95,6 +98,8 @@ contract InvoiceFactoringMarketplace is ERC721Holder {
             status: status
         });
 
+        totalListings++;
+
         emit InvoiceListed(
             tokenId,
             to,
@@ -126,5 +131,9 @@ contract InvoiceFactoringMarketplace is ERC721Holder {
 
     function getListing(uint256 tokenId) public view returns (Listing memory) {
         return listings[tokenId];
+    }
+
+    function getTotalListings() public view returns (uint256) {
+        return totalListings;
     }
 }
